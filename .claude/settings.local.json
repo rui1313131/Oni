@@ -17,7 +17,17 @@
       "Bash(node scripts/build-www.js)",
       "Bash(node scripts/setup-android-icons.js)",
       "Bash(node scripts/gen-splash.js)",
-      "Bash(gh auth:*)"
+      "Bash(gh auth:*)",
+      "Bash(gh repo:*)",
+      "Bash(gh api:*)",
+      "Bash(firebase --version)",
+      "Bash(npx firebase-tools:*)",
+      "Bash(firebase:*)",
+      "Bash(printf 'asia-southeast1\\\\n')",
+      "Bash(gcloud auth:*)",
+      "Bash(node -e \":*)",
+      "Bash(printf 'Y\\\\noni-tag-game\\\\nus-central1\\\\ndatabase.rules.json\\\\n')",
+      "Bash(start:*)"
     ]
   }
 }

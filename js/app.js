@@ -47,13 +47,6 @@ const App = (() => {
     document.getElementById('setting-sound').checked = Utils.getSetting('sound', true);
     document.getElementById('setting-high-accuracy').checked = Utils.getSetting('highAccuracy', true);
 
-    const fbConfig = FirebaseConfig.getConfig();
-    if (fbConfig) {
-      document.getElementById('fb-apiKey').value = fbConfig.apiKey || '';
-      document.getElementById('fb-authDomain').value = fbConfig.authDomain || '';
-      document.getElementById('fb-databaseURL').value = fbConfig.databaseURL || '';
-      document.getElementById('fb-projectId').value = fbConfig.projectId || '';
-    }
   }
 
   function setupEventListeners() {
@@ -80,10 +73,33 @@ const App = (() => {
       UI.showScreen('settings');
     });
 
+    document.getElementById('btn-random-match').addEventListener('click', () => {
+      if (!FirebaseConfig.isReady()) {
+        UI.showToast('接続エラー', 'error');
+        return;
+      }
+      UI.showScreen('random');
+    });
+
     // 戻るボタン
     document.getElementById('btn-back-create').addEventListener('click', () => UI.showScreen('menu'));
     document.getElementById('btn-back-join').addEventListener('click', () => UI.showScreen('menu'));
     document.getElementById('btn-back-settings').addEventListener('click', () => UI.showScreen('menu'));
+    document.getElementById('btn-back-random').addEventListener('click', () => {
+      RandomMatch.cancel();
+      UI.showScreen('menu');
+    });
+
+    // ランダムマッチ
+    document.getElementById('btn-start-random').addEventListener('click', handleRandomMatch);
+    document.getElementById('btn-cancel-random').addEventListener('click', () => {
+      RandomMatch.cancel();
+      document.getElementById('btn-start-random').style.display = 'block';
+      document.getElementById('btn-cancel-random').style.display = 'none';
+      document.getElementById('random-search-anim').style.display = 'none';
+      document.getElementById('random-status-text').textContent = '対戦相手を検索します';
+      document.getElementById('random-player-count').style.display = 'none';
+    });
     document.getElementById('btn-back-lobby').addEventListener('click', async () => {
       await RoomManager.leaveRoom();
       UI.showScreen('menu');
@@ -133,29 +149,6 @@ const App = (() => {
       Utils.setSetting('highAccuracy', e.target.checked);
     });
 
-    // Firebase設定保存
-    document.getElementById('btn-save-firebase').addEventListener('click', () => {
-      const config = {
-        apiKey: document.getElementById('fb-apiKey').value.trim(),
-        authDomain: document.getElementById('fb-authDomain').value.trim(),
-        databaseURL: document.getElementById('fb-databaseURL').value.trim(),
-        projectId: document.getElementById('fb-projectId').value.trim()
-      };
-
-      if (!config.databaseURL) {
-        UI.showToast('Database URLは必須です', 'error');
-        return;
-      }
-
-      const success = FirebaseConfig.updateConfig(config);
-      if (success) {
-        UI.showToast('Firebase設定を保存しました', 'success');
-        updateConnectionStatus(true);
-      } else {
-        UI.showToast('Firebase接続に失敗しました', 'error');
-        updateConnectionStatus(false);
-      }
-    });
 
     // ゲーム内ボタン
     document.getElementById('skill-btn-1').addEventListener('click', () => handleSkillUse(0));
@@ -577,6 +570,58 @@ const App = (() => {
     UI.showToast(muted ? 'マイクOFF' : 'マイクON', 'info');
   }
 
+  // ========== ランダムマッチ ==========
+  async function handleRandomMatch() {
+    const name = document.getElementById('random-player-name').value.trim();
+    if (!name) {
+      UI.showToast('プレイヤー名を入力してください', 'error');
+      return;
+    }
+
+    document.getElementById('btn-start-random').style.display = 'none';
+    document.getElementById('btn-cancel-random').style.display = 'block';
+    document.getElementById('random-search-anim').style.display = 'flex';
+    document.getElementById('random-status-text').textContent = '対戦相手を検索中...';
+
+    LocationManager.start();
+
+    RandomMatch.search(name, async (event, data) => {
+      switch (event) {
+        case 'waiting':
+          document.getElementById('random-status-text').textContent = '対戦相手を待っています...';
+          document.getElementById('random-player-count').style.display = 'block';
+          document.getElementById('random-player-count').textContent = `${data.count}/${data.need}人`;
+          break;
+
+        case 'found':
+          document.getElementById('random-status-text').textContent = 'マッチング成功！';
+          document.getElementById('random-search-anim').style.display = 'none';
+          Utils.vibrate([100, 50, 100]);
+
+          // ロビーへ遷移
+          document.getElementById('lobby-room-id').textContent = data.roomId;
+          document.getElementById('invite-link-area').style.display = 'none';
+          document.getElementById('btn-start-game').style.display = data.isHost ? 'block' : 'none';
+          document.getElementById('lobby-wait-text').style.display = data.isHost ? 'none' : 'block';
+
+          const room = RoomManager.getRoom();
+          if (room) UI.updateLobbyInfo(room);
+          UI.showScreen('lobby');
+          UI.showToast('マッチング成功！', 'success');
+          break;
+
+        case 'error':
+          document.getElementById('btn-start-random').style.display = 'block';
+          document.getElementById('btn-cancel-random').style.display = 'none';
+          document.getElementById('random-search-anim').style.display = 'none';
+          document.getElementById('random-status-text').textContent = '対戦相手を検索します';
+          document.getElementById('random-player-count').style.display = 'none';
+          UI.showToast(data.message || 'マッチングエラー', 'error');
+          break;
+      }
+    });
+  }
+
   // ========== 招待リンク ==========
   function checkInviteLink() {
     const params = new URLSearchParams(location.search);
@@ -650,7 +695,9 @@ const App = (() => {
     const map = {
       'icon-create': ['bolt', 20],
       'icon-join': ['link', 20],
+      'icon-random': ['random', 20],
       'icon-settings': ['gear', 20],
+      'icon-search-anim': ['search', 28],
       'icon-copy': ['copy', 16],
       'icon-lobby-mic': ['mic', 16],
       'icon-shoot': ['crosshair', 28],

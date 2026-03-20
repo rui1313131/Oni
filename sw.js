@@ -1,4 +1,4 @@
-const CACHE_NAME = 'oni-v3';
+const CACHE_NAME = 'oni-v4';
 const ASSETS = [
   './',
   './index.html',
@@ -14,6 +14,7 @@ const ASSETS = [
   './js/safety.js',
   './js/game.js',
   './js/room.js',
+  './js/random-match.js',
   './js/ads.js',
   './js/ui.js',
   './js/app.js',

@@ -42,6 +42,10 @@
           <span class="btn-icon" id="icon-join"></span>
           <span class="btn-label">ルーム参加</span>
         </button>
+        <button class="btn btn-accent btn-glow" id="btn-random-match">
+          <span class="btn-icon" id="icon-random"></span>
+          <span class="btn-label">ランダムマッチ</span>
+        </button>
         <button class="btn btn-tertiary" id="btn-settings">
           <span class="btn-icon" id="icon-settings"></span>
           <span class="btn-label">設定</span>
@@ -143,6 +147,34 @@
       document.getElementById('team-size-group').style.display = this.value === 'team' ? 'block' : 'none';
     });
   </script>
+
+  <!-- ========== ランダムマッチ画面 ========== -->
+  <div id="screen-random" class="screen">
+    <div class="panel-container">
+      <div class="panel-header">
+        <button class="btn-back" id="btn-back-random"><span class="icon-back"></span></button>
+        <h2>ランダムマッチ</h2>
+      </div>
+      <div class="panel-body">
+        <div class="input-group">
+          <label>プレイヤー名</label>
+          <input type="text" id="random-player-name" class="input-neon" placeholder="名前を入力" maxlength="12">
+        </div>
+        <div class="random-match-status" id="random-match-status">
+          <div class="random-search-anim" id="random-search-anim" style="display:none">
+            <div class="search-ring"></div>
+            <div class="search-ring delay-1"></div>
+            <div class="search-ring delay-2"></div>
+            <span class="search-icon" id="icon-search-anim"></span>
+          </div>
+          <p class="random-status-text" id="random-status-text">対戦相手を検索します</p>
+          <p class="random-player-count" id="random-player-count" style="display:none"></p>
+        </div>
+        <button class="btn btn-accent btn-glow btn-full" id="btn-start-random">マッチング開始</button>
+        <button class="btn btn-secondary btn-full" id="btn-cancel-random" style="display:none">キャンセル</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ========== ルーム参加画面 ========== -->
   <div id="screen-join" class="screen">
@@ -249,26 +281,9 @@
             <span class="toggle-slider"></span>
           </label>
         </div>
-        <div class="firebase-config-section">
-          <h3>Firebase設定</h3>
-          <p class="hint">Firebase Realtime Databaseの設定を入力してください</p>
-          <div class="input-group">
-            <label>API Key</label>
-            <input type="text" id="fb-apiKey" class="input-neon" placeholder="AIza...">
-          </div>
-          <div class="input-group">
-            <label>Auth Domain</label>
-            <input type="text" id="fb-authDomain" class="input-neon" placeholder="xxx.firebaseapp.com">
-          </div>
-          <div class="input-group">
-            <label>Database URL</label>
-            <input type="text" id="fb-databaseURL" class="input-neon" placeholder="https://xxx.firebaseio.com">
-          </div>
-          <div class="input-group">
-            <label>Project ID</label>
-            <input type="text" id="fb-projectId" class="input-neon" placeholder="your-project-id">
-          </div>
-          <button class="btn btn-primary btn-full" id="btn-save-firebase">設定を保存</button>
+        <div class="app-info-section">
+          <h3>アプリ情報</h3>
+          <p class="hint">ONI v1.0.0 — リアルタイム鬼ごっこバトル</p>
         </div>
       </div>
     </div>
@@ -434,6 +449,7 @@
   <script src="js/safety.js"></script>
   <script src="js/game.js"></script>
   <script src="js/room.js"></script>
+  <script src="js/random-match.js"></script>
   <script src="js/ads.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/app.js"></script>
