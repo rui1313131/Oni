@@ -1680,6 +1680,33 @@ select.input-neon {
   border-radius: 4px;
 }
 
+/* ========== リワード広告ボタン ========== */
+.btn-reward-ad {
+  position: absolute;
+  right: -60px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: linear-gradient(135deg, rgba(255, 136, 0, 0.2), rgba(255, 68, 0, 0.15));
+  border: 1px solid #ff8800;
+  color: #ff8800;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  animation: rewardPulse 2s ease-in-out infinite;
+}
+
+.btn-reward-ad .reward-ad-icon {
+  font-size: 0.6rem;
+}
+
+@keyframes rewardPulse {
+  0%, 100% { box-shadow: 0 0 4px rgba(255, 136, 0, 0.3); }
+  50% { box-shadow: 0 0 12px rgba(255, 136, 0, 0.6); }
+}
+
 /* ========== ランダムマッチ ========== */
 .random-match-status {
   text-align: center;

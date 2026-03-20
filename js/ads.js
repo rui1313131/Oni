@@ -9,7 +9,7 @@ const AdManager = (() => {
     appId: 'ca-app-pub-8709386372302469~1950669310',
     bannerId: 'ca-app-pub-8709386372302469/5761221119',
     interstitialId: 'ca-app-pub-8709386372302469/1069099386',
-    rewardedId: '', // リワードID入力後に設定
+    rewardedId: 'ca-app-pub-8709386372302469/9912919811',
     testMode: false
   };
 

@@ -162,6 +162,9 @@ const App = (() => {
     // ボイスチャットボタン
     document.getElementById('btn-voice-toggle').addEventListener('click', handleVoiceToggle);
 
+    // リワード広告（スタミナ回復）
+    document.getElementById('btn-reward-ad').addEventListener('click', handleRewardAd);
+
     // ゲーム内メニュー
     document.getElementById('btn-game-menu').addEventListener('click', () => {
       document.getElementById('game-menu-overlay').style.display = 'flex';
@@ -469,6 +472,13 @@ const App = (() => {
     UI.updateHUD(gameState);
     UI.updateSkillButtons(currentSkills);
 
+    // スタミナ20%以下でリワードボタン表示（Android時のみ）
+    const rewardBtn = document.getElementById('btn-reward-ad');
+    if (rewardBtn && AdManager.getPlatform() === 'android') {
+      const staPct = SkillSystem.getStaminaPercent();
+      rewardBtn.style.display = staPct <= 20 ? 'block' : 'none';
+    }
+
     const myPos = LocationManager.getPosition();
     const myId = Utils.getPlayerId();
 
@@ -562,6 +572,21 @@ const App = (() => {
       return;
     }
     GameEngine.useItem(index);
+  }
+
+  async function handleRewardAd() {
+    if (!gameActive) return;
+    document.getElementById('btn-reward-ad').style.display = 'none';
+    UI.showToast('広告を読み込み中...', 'info');
+    const rewarded = await AdManager.showRewarded();
+    if (rewarded) {
+      // スタミナ全回復
+      if (typeof SkillSystem !== 'undefined' && SkillSystem.restoreStamina) {
+        SkillSystem.restoreStamina();
+      }
+      UI.showToast('スタミナ全回復！', 'success');
+      Utils.vibrate([50, 30, 50]);
+    }
   }
 
   function handleVoiceToggle() {

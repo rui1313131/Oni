@@ -171,10 +171,14 @@ const SkillSystem = (() => {
     };
   }
 
+  function restoreStamina() {
+    stamina = MAX_STAMINA;
+  }
+
   return {
     SKILLS, getSkillsForRole, getSkillInfo, canUseSkill,
     useSkill, isActive, getCooldownRemaining, getActiveSkills,
     updateStamina, getStamina, getStaminaPercent, reset,
-    generateDecoyPosition
+    generateDecoyPosition, restoreStamina
   };
 })();
