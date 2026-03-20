@@ -10,8 +10,13 @@ const Utils = (() => {
     return result;
   }
 
-  // プレイヤーID（デバイス固有）
+  // プレイヤーID（Firebase Auth UID優先）
   function getPlayerId() {
+    // Firebase Auth UIDがあればそれを使う（セキュリティルール対応）
+    if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth().currentUser) {
+      return firebase.auth().currentUser.uid;
+    }
+    // フォールバック（認証前）
     let id = localStorage.getItem('oni_player_id');
     if (!id) {
       id = 'P_' + generateId(10) + '_' + Date.now().toString(36);
@@ -127,9 +132,32 @@ const Utils = (() => {
     return Math.abs(hash).toString(36);
   }
 
+  // 入力サニタイズ（XSS防止）
+  function sanitize(str) {
+    if (typeof str !== 'string') return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;')
+      .trim();
+  }
+
+  // プレイヤー名バリデーション
+  function validatePlayerName(name) {
+    if (!name || typeof name !== 'string') return false;
+    const trimmed = name.trim();
+    if (trimmed.length === 0 || trimmed.length > 12) return false;
+    // スクリプトタグや危険な文字を拒否
+    if (/<|>|&|"|'|\//.test(trimmed)) return false;
+    return true;
+  }
+
   return {
     generateId, getPlayerId, getDistance, getBearing,
     lerp, lerpLatLng, predictPosition, formatTime, now,
-    vibrate, getSetting, setSetting, isNightTime, simpleHash
+    vibrate, getSetting, setSetting, isNightTime, simpleHash,
+    sanitize, validatePlayerName
   };
 })();

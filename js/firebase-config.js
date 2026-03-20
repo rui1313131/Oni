@@ -32,7 +32,7 @@ const FirebaseConfig = (() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
   }
 
-  function init() {
+  async function init() {
     const config = loadConfig() || (defaultConfig.databaseURL ? defaultConfig : null);
     if (!config || !config.databaseURL) {
       console.warn('Firebase設定が未構成です。設定画面で設定してください。');
@@ -46,9 +46,12 @@ const FirebaseConfig = (() => {
       db = firebase.database();
 
       // 匿名認証
-      firebase.auth().signInAnonymously().catch(err => {
+      try {
+        await firebase.auth().signInAnonymously();
+        console.log('匿名認証完了: UID =', firebase.auth().currentUser?.uid);
+      } catch (err) {
         console.warn('匿名認証エラー:', err);
-      });
+      }
 
       isInitialized = true;
       console.log('Firebase初期化完了');

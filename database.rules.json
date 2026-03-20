@@ -1,11 +1,123 @@
 {
   "rules": {
-    ".read": true,
-    ".write": true,
+    ".read": false,
+    ".write": false,
+
     "rooms": {
+      ".read": false,
+      ".write": false,
       "$roomId": {
-        ".read": true,
-        ".write": true
+        ".read": "auth != null",
+        ".write": "auth != null",
+
+        "players": {
+          "$playerId": {
+            ".write": "auth != null && ($playerId === auth.uid || root.child('rooms/' + $roomId + '/hostId').val() === auth.uid)",
+            ".validate": "newData.hasChildren(['name', 'joinedAt'])",
+            "name": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 12"
+            }
+          }
+        },
+
+        "status": {
+          ".write": "auth != null && root.child('rooms/' + $roomId + '/hostId').val() === auth.uid",
+          ".validate": "newData.isString() && (newData.val() === 'waiting' || newData.val() === 'countdown' || newData.val() === 'playing' || newData.val() === 'ended')"
+        },
+
+        "hostId": {
+          ".write": "auth != null"
+        },
+
+        "locations": {
+          "$playerId": {
+            ".write": "auth != null && $playerId === auth.uid",
+            ".validate": "newData.hasChildren(['lat', 'lng', 'timestamp'])",
+            "lat": { ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90" },
+            "lng": { ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180" },
+            "timestamp": { ".validate": "newData.isNumber()" },
+            "velocity": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100" },
+            "heading": { ".validate": "newData.isNumber()" }
+          }
+        },
+
+        "captures": {
+          "$captureId": {
+            ".write": "auth != null",
+            ".validate": "newData.hasChildren(['capturedBy', 'capturedPlayer', 'timestamp'])"
+          }
+        },
+
+        "shots": {
+          "$shotId": {
+            ".write": "auth != null",
+            ".validate": "newData.hasChildren(['shooterId', 'timestamp'])"
+          }
+        },
+
+        "items": {
+          "$itemId": {
+            ".write": "auth != null"
+          }
+        },
+
+        "traps": {
+          "$trapId": {
+            ".write": "auth != null"
+          }
+        },
+
+        "itemEvents": {
+          "$eventId": {
+            ".write": "auth != null",
+            ".validate": "newData.hasChild('type') && newData.hasChild('timestamp')"
+          }
+        },
+
+        "teams": {
+          ".write": "auth != null && root.child('rooms/' + $roomId + '/hostId').val() === auth.uid"
+        },
+
+        "oniId": {
+          ".write": "auth != null && root.child('rooms/' + $roomId + '/hostId').val() === auth.uid"
+        },
+
+        "areaCenter": {
+          ".write": "auth != null && root.child('rooms/' + $roomId + '/hostId').val() === auth.uid"
+        },
+
+        "startTime": {
+          ".write": "auth != null && root.child('rooms/' + $roomId + '/hostId').val() === auth.uid"
+        },
+
+        "gameEnd": {
+          ".write": "auth != null"
+        },
+
+        "voiceReady": {
+          "$playerId": {
+            ".write": "auth != null && $playerId === auth.uid"
+          }
+        },
+
+        "voiceSignal": {
+          "$peerId": {
+            ".write": "auth != null",
+            ".read": "auth != null"
+          }
+        }
+      }
+    },
+
+    "matchmaking": {
+      ".read": "auth != null",
+      "$playerId": {
+        ".write": "auth != null",
+        ".validate": "newData.hasChildren(['name', 'joinedAt', 'status'])",
+        "name": { ".validate": "newData.isString() && newData.val().length <= 12" },
+        "status": { ".validate": "newData.isString() && (newData.val() === 'waiting' || newData.val() === 'matching' || newData.val() === 'matched')" },
+        "joinedAt": { ".validate": "newData.isNumber()" },
+        "roomId": { ".validate": "newData.isString()" }
       }
     }
   }

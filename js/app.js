@@ -11,7 +11,7 @@ const App = (() => {
     // SVGアイコン注入
     injectIcons();
 
-    const fbReady = FirebaseConfig.init();
+    const fbReady = await FirebaseConfig.init();
     loadSettings();
 
     // 広告初期化
