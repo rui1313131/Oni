@@ -1,0 +1,23 @@
+{
+  "appId": "com.oni.taggame",
+  "appName": "ONI",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0,
+      "backgroundColor": "#0a0a0f"
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#0a0a0f"
+    }
+  },
+  "android": {
+    "backgroundColor": "#0a0a0f",
+    "allowMixedContent": true,
+    "captureInput": true
+  }
+}

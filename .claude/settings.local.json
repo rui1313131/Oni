@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc -l /c/Users/msi/Desktop/Oni/js/*.js /c/Users/msi/Desktop/Oni/css/*.css /c/Users/msi/Desktop/Oni/index.html)",
+      "Bash(grep -rn --include=*.html --include=*.js -P [x{1F300}-x{1F9FF}x{2600}-x{26FF}x{2700}-x{27BF}] .)",
+      "Bash(npm --version)",
+      "Bash(echo $ANDROID_HOME)",
+      "Bash(echo $ANDROID_SDK_ROOT)",
+      "Read(//c/Users/msi/Desktop/Oni/$LOCALAPPDATA/Android/**)",
+      "Read(//c/Users/msi/Desktop/Oni/$HOME/Android/**)",
+      "Bash(magick --version)",
+      "Bash(convert --version)",
+      "Bash(npm install:*)",
+      "Bash(node scripts/generate-icons.js)",
+      "Bash(npx cap:*)",
+      "Bash(cd:*)",
+      "Bash(node scripts/build-www.js)",
+      "Bash(node scripts/setup-android-icons.js)",
+      "Bash(node scripts/gen-splash.js)",
+      "Bash(gh auth:*)"
+    ]
+  }
+}

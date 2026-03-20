@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+  <meta name="theme-color" content="#0a0a0f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>ONI - リアルタイム鬼ごっこ</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- ========== スプラッシュ画面 ========== -->
+  <div id="screen-splash" class="screen active">
+    <div class="splash-content">
+      <div class="splash-logo">
+        <span class="logo-text glitch" data-text="ONI">ONI</span>
+        <div class="logo-subtitle">REAL-TIME TAG BATTLE</div>
+      </div>
+      <div class="splash-loader">
+        <div class="loader-bar"><div class="loader-fill"></div></div>
+        <div class="loader-text">INITIALIZING...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== メニュー画面 ========== -->
+  <div id="screen-menu" class="screen">
+    <div class="menu-container">
+      <div class="menu-header">
+        <h1 class="logo-text neon-flicker">ONI</h1>
+        <p class="menu-tagline">戦術型リアルタイム鬼ごっこ</p>
+      </div>
+      <div class="menu-buttons">
+        <button class="btn btn-primary btn-glow" id="btn-create-room">
+          <span class="btn-icon" id="icon-create"></span>
+          <span class="btn-label">ルーム作成</span>
+        </button>
+        <button class="btn btn-secondary btn-glow" id="btn-join-room">
+          <span class="btn-icon" id="icon-join"></span>
+          <span class="btn-label">ルーム参加</span>
+        </button>
+        <button class="btn btn-tertiary" id="btn-settings">
+          <span class="btn-icon" id="icon-settings"></span>
+          <span class="btn-label">設定</span>
+        </button>
+      </div>
+      <!-- 広告バナー（メニュー） -->
+      <div class="ad-banner" id="ad-banner-menu" style="display:none">
+        <ins class="adsbygoogle"
+          style="display:block;width:100%;height:50px"
+          data-ad-format="auto"
+          data-full-width-responsive="true"></ins>
+      </div>
+
+      <div class="menu-footer">
+        <div class="connection-status" id="connection-status">
+          <span class="status-dot"></span>
+          <span class="status-text">接続中...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ルーム作成画面 ========== -->
+  <div id="screen-create" class="screen">
+    <div class="panel-container">
+      <div class="panel-header">
+        <button class="btn-back" id="btn-back-create"><span class="icon-back"></span></button>
+        <h2>ルーム作成</h2>
+      </div>
+      <div class="panel-body">
+        <div class="input-group">
+          <label>プレイヤー名</label>
+          <input type="text" id="create-player-name" class="input-neon" placeholder="名前を入力" maxlength="12">
+        </div>
+        <div class="input-group">
+          <label>ルーム名</label>
+          <input type="text" id="create-room-name" class="input-neon" placeholder="ルーム名" maxlength="20">
+        </div>
+        <div class="input-group">
+          <label>パスワード（任意）</label>
+          <input type="password" id="create-room-password" class="input-neon" placeholder="パスワード" maxlength="16">
+        </div>
+        <div class="input-group">
+          <label>制限時間</label>
+          <select id="create-time-limit" class="input-neon">
+            <option value="180">3分</option>
+            <option value="300" selected>5分</option>
+            <option value="600">10分</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>エリア半径</label>
+          <select id="create-area-radius" class="input-neon">
+            <option value="100">100m</option>
+            <option value="200" selected>200m</option>
+            <option value="500">500m</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>ゲームモード</label>
+          <select id="create-game-mode" class="input-neon">
+            <option value="classic" selected>クラシック（1vs全）</option>
+            <option value="team">チーム戦（鬼チームvs逃走チーム）</option>
+          </select>
+        </div>
+        <div class="input-group" id="team-size-group" style="display:none">
+          <label>鬼チーム人数</label>
+          <select id="create-oni-count" class="input-neon">
+            <option value="1" selected>1人</option>
+            <option value="2">2人</option>
+            <option value="3">3人</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>最大プレイヤー数</label>
+          <select id="create-max-players" class="input-neon">
+            <option value="4" selected>4人</option>
+            <option value="6">6人</option>
+            <option value="8">8人</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>ボイスチャット</label>
+          <select id="create-voice-mode" class="input-neon">
+            <option value="off">オフ</option>
+            <option value="proximity" selected>近距離チャット</option>
+            <option value="team">チーム内のみ</option>
+            <option value="all">全体</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-glow btn-full" id="btn-do-create">ルームを作成</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ゲームモード切替のインラインスクリプト -->
+  <script>
+    document.getElementById('create-game-mode').addEventListener('change', function() {
+      document.getElementById('team-size-group').style.display = this.value === 'team' ? 'block' : 'none';
+    });
+  </script>
+
+  <!-- ========== ルーム参加画面 ========== -->
+  <div id="screen-join" class="screen">
+    <div class="panel-container">
+      <div class="panel-header">
+        <button class="btn-back" id="btn-back-join"><span class="icon-back"></span></button>
+        <h2>ルーム参加</h2>
+      </div>
+      <div class="panel-body">
+        <div class="input-group">
+          <label>プレイヤー名</label>
+          <input type="text" id="join-player-name" class="input-neon" placeholder="名前を入力" maxlength="12">
+        </div>
+        <div class="input-group">
+          <label>ルームID</label>
+          <input type="text" id="join-room-id" class="input-neon" placeholder="ルームIDを入力">
+        </div>
+        <div class="input-group">
+          <label>パスワード（設定されている場合）</label>
+          <input type="password" id="join-room-password" class="input-neon" placeholder="パスワード">
+        </div>
+        <button class="btn btn-primary btn-glow btn-full" id="btn-do-join">参加する</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ロビー画面 ========== -->
+  <div id="screen-lobby" class="screen">
+    <div class="panel-container">
+      <div class="panel-header">
+        <button class="btn-back" id="btn-back-lobby"><span class="icon-back"></span></button>
+        <h2>ロビー</h2>
+      </div>
+      <div class="panel-body">
+        <div class="lobby-info">
+          <div class="room-id-display">
+            <span class="label">ルームID:</span>
+            <span class="value" id="lobby-room-id">---</span>
+            <button class="btn-copy" id="btn-copy-room-id" title="コピー"><span id="icon-copy"></span></button>
+          </div>
+          <div class="invite-link" id="invite-link-area" style="display:none">
+            <button class="btn btn-secondary btn-small" id="btn-share-invite">招待リンクをコピー</button>
+          </div>
+        </div>
+        <div class="lobby-mode-badge" id="lobby-mode-badge"></div>
+        <div class="player-list" id="lobby-player-list">
+          <!-- プレイヤーリストがここに追加される -->
+        </div>
+        <div class="lobby-voice-info" id="lobby-voice-info" style="display:none">
+          <span class="voice-icon" id="icon-lobby-mic"></span>
+          <span class="voice-label" id="lobby-voice-label">ボイスチャット: 近距離</span>
+        </div>
+        <div class="lobby-actions">
+          <button class="btn btn-primary btn-glow btn-full" id="btn-start-game" style="display:none">
+            ゲーム開始
+          </button>
+          <p class="lobby-wait" id="lobby-wait-text">ホストがゲームを開始するのを待っています...</p>
+        </div>
+
+        <!-- 広告バナー（ロビー） -->
+        <div class="ad-banner" id="ad-banner-lobby" style="display:none">
+          <ins class="adsbygoogle"
+            style="display:block;width:100%;height:50px"
+            data-ad-format="auto"
+            data-full-width-responsive="true"></ins>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 設定画面 ========== -->
+  <div id="screen-settings" class="screen">
+    <div class="panel-container">
+      <div class="panel-header">
+        <button class="btn-back" id="btn-back-settings"><span class="icon-back"></span></button>
+        <h2>設定</h2>
+      </div>
+      <div class="panel-body">
+        <div class="setting-item">
+          <label>夜間モード制限</label>
+          <label class="toggle">
+            <input type="checkbox" id="setting-night-mode">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="setting-item">
+          <label>振動フィードバック</label>
+          <label class="toggle">
+            <input type="checkbox" id="setting-vibration" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="setting-item">
+          <label>サウンド効果</label>
+          <label class="toggle">
+            <input type="checkbox" id="setting-sound" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="setting-item">
+          <label>GPS精度優先</label>
+          <label class="toggle">
+            <input type="checkbox" id="setting-high-accuracy" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="firebase-config-section">
+          <h3>Firebase設定</h3>
+          <p class="hint">Firebase Realtime Databaseの設定を入力してください</p>
+          <div class="input-group">
+            <label>API Key</label>
+            <input type="text" id="fb-apiKey" class="input-neon" placeholder="AIza...">
+          </div>
+          <div class="input-group">
+            <label>Auth Domain</label>
+            <input type="text" id="fb-authDomain" class="input-neon" placeholder="xxx.firebaseapp.com">
+          </div>
+          <div class="input-group">
+            <label>Database URL</label>
+            <input type="text" id="fb-databaseURL" class="input-neon" placeholder="https://xxx.firebaseio.com">
+          </div>
+          <div class="input-group">
+            <label>Project ID</label>
+            <input type="text" id="fb-projectId" class="input-neon" placeholder="your-project-id">
+          </div>
+          <button class="btn btn-primary btn-full" id="btn-save-firebase">設定を保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ゲーム画面 ========== -->
+  <div id="screen-game" class="screen">
+    <!-- マップ -->
+    <div id="game-map"></div>
+
+    <!-- ゲームHUD -->
+    <div class="game-hud">
+      <!-- 上部HUD -->
+      <div class="hud-top">
+        <div class="hud-role" id="hud-role">逃走者</div>
+        <div class="hud-timer" id="hud-timer">5:00</div>
+        <div class="hud-status">
+          <span class="hud-alive" id="hud-alive">残り: 3</span>
+          <span class="hud-team-score" id="hud-team-score" style="display:none"></span>
+        </div>
+      </div>
+
+      <!-- スタミナバー -->
+      <div class="hud-stamina">
+        <div class="stamina-bar">
+          <div class="stamina-fill" id="stamina-fill"></div>
+        </div>
+        <span class="stamina-label">STA</span>
+      </div>
+
+      <!-- ミニマップ -->
+      <div class="minimap" id="minimap">
+        <canvas id="minimap-canvas" width="120" height="120"></canvas>
+      </div>
+
+      <!-- アイテムインベントリ -->
+      <div class="item-inventory" id="item-inventory">
+        <button class="btn-item-slot" id="item-slot-0" data-index="0">
+          <div class="item-slot-icon" id="item-icon-0">-</div>
+        </button>
+        <button class="btn-item-slot" id="item-slot-1" data-index="1">
+          <div class="item-slot-icon" id="item-icon-1">-</div>
+        </button>
+      </div>
+
+      <!-- ボイスチャットコントロール -->
+      <div class="voice-control" id="voice-control" style="display:none">
+        <button class="btn-voice" id="btn-voice-toggle">
+          <span class="voice-btn-icon" id="voice-btn-icon"></span>
+        </button>
+        <div class="voice-peers" id="voice-peers">0</div>
+      </div>
+
+      <!-- 距離インジケータ -->
+      <div class="distance-indicator" id="distance-indicator" style="display:none">
+        <span class="distance-zone" id="distance-zone">FAR</span>
+        <span class="distance-value" id="distance-value">--m</span>
+      </div>
+
+      <!-- 下部コントロール -->
+      <div class="hud-bottom">
+        <div class="skill-buttons">
+          <button class="btn-skill" id="skill-btn-1" data-skill="stealth">
+            <div class="skill-icon" id="skill-icon-1"></div>
+            <div class="skill-name">ステルス</div>
+            <div class="skill-cooldown" id="skill-cd-1"></div>
+          </button>
+          <button class="btn-shoot" id="btn-shoot">
+            <div class="shoot-icon" id="icon-shoot"></div>
+            <div class="shoot-label">SHOOT</div>
+            <div class="shoot-ammo" id="shoot-ammo">3</div>
+          </button>
+          <button class="btn-skill" id="skill-btn-2" data-skill="scan">
+            <div class="skill-icon" id="skill-icon-2"></div>
+            <div class="skill-name">スキャン</div>
+            <div class="skill-cooldown" id="skill-cd-2"></div>
+          </button>
+        </div>
+      </div>
+
+      <!-- アラート表示 -->
+      <div class="alert-overlay" id="alert-overlay" style="display:none">
+        <div class="alert-content" id="alert-content"></div>
+      </div>
+
+      <!-- 安全警告 -->
+      <div class="safety-warning" id="safety-warning" style="display:none">
+        <span class="warning-icon" id="icon-warning"></span>
+        <span class="warning-text" id="warning-text"></span>
+      </div>
+    </div>
+
+    <!-- メニューボタン -->
+    <button class="btn-game-menu" id="btn-game-menu"><span id="icon-menu"></span></button>
+
+    <!-- ゲーム内メニュー -->
+    <div class="game-menu-overlay" id="game-menu-overlay" style="display:none">
+      <div class="game-menu-panel">
+        <h3>メニュー</h3>
+        <div class="game-menu-voice" id="game-menu-voice" style="display:none">
+          <div class="setting-item">
+            <label>ボイスチャット</label>
+            <label class="toggle">
+              <input type="checkbox" id="game-voice-enabled" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+        <button class="btn btn-secondary btn-full" id="btn-leave-game">ゲームを退出</button>
+        <button class="btn btn-tertiary btn-full" id="btn-close-game-menu">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== リザルト画面 ========== -->
+  <div id="screen-result" class="screen">
+    <div class="result-container">
+      <div class="result-title" id="result-title">GAME OVER</div>
+      <div class="result-winner" id="result-winner"></div>
+      <div class="result-stats" id="result-stats"></div>
+
+      <!-- 広告バナー（リザルト） -->
+      <div class="ad-banner" id="ad-banner-result" style="display:none">
+        <ins class="adsbygoogle"
+          style="display:block;width:100%;height:50px"
+          data-ad-format="auto"
+          data-full-width-responsive="true"></ins>
+      </div>
+
+      <button class="btn btn-primary btn-glow" id="btn-back-menu">メニューに戻る</button>
+    </div>
+  </div>
+
+  <!-- PWAインストールバナー -->
+  <div class="install-banner" id="install-banner" style="display:none">
+    <div class="install-banner-content">
+      <div class="install-banner-text">
+        <strong>ONI</strong>をホーム画面に追加
+      </div>
+      <div class="install-banner-actions">
+        <button class="btn btn-primary btn-small" id="btn-install">インストール</button>
+        <button class="btn-close-install" id="btn-close-install">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- トースト通知 -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/icons.js"></script>
+  <script src="js/location.js"></script>
+  <script src="js/skills.js"></script>
+  <script src="js/shooting.js"></script>
+  <script src="js/items.js"></script>
+  <script src="js/voice.js"></script>
+  <script src="js/safety.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/room.js"></script>
+  <script src="js/ads.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

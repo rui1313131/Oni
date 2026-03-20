@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>アカウント削除 - ONI</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', 'Hiragino Sans', sans-serif; background: #0a0a0f; color: #e0e0e0; line-height: 1.8; padding: 24px; max-width: 720px; margin: 0 auto; }
+    h1 { color: #00f0ff; font-size: 1.6rem; margin-bottom: 8px; }
+    h2 { color: #00f0ff; font-size: 1.1rem; margin-top: 28px; margin-bottom: 8px; }
+    p { font-size: 0.92rem; color: #b0b0c0; margin-bottom: 12px; }
+    .warn { background: rgba(255, 34, 102, 0.1); border: 1px solid #ff2266; border-radius: 8px; padding: 16px; margin: 16px 0; }
+    .warn p { color: #ff8899; margin: 0; }
+    .section { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 20px; margin: 16px 0; }
+    .btn { display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #ff2266, #cc1155); color: #fff; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 12px; text-decoration: none; }
+    .btn:hover { opacity: 0.9; }
+    .btn-secondary { background: linear-gradient(135deg, #00f0ff, #0088aa); }
+    .success { display: none; background: rgba(0, 240, 255, 0.1); border: 1px solid #00f0ff; border-radius: 8px; padding: 16px; margin: 16px 0; }
+    .success p { color: #00f0ff; }
+    ul { padding-left: 20px; margin-bottom: 12px; }
+    li { font-size: 0.92rem; color: #b0b0c0; margin-bottom: 4px; }
+    a { color: #00f0ff; }
+    .update { font-size: 0.8rem; color: #666; margin-bottom: 24px; }
+  </style>
+</head>
+<body>
+
+<h1>アカウント・データ削除</h1>
+<p class="update">ONI - リアルタイム鬼ごっこ</p>
+
+<h2>削除されるデータ</h2>
+<div class="section">
+  <p>以下のデータが完全に削除されます：</p>
+  <ul>
+    <li>匿名認証アカウント（Firebase Anonymous Auth ID）</li>
+    <li>サーバー上のプレイヤー情報（位置情報、ルーム参加履歴）</li>
+    <li>ローカルストレージ（設定、プレイヤー名、Firebase設定）</li>
+  </ul>
+  <p>※ ゲームセッション中の位置情報は既にゲーム終了時に自動削除されています。</p>
+  <p>※ ボイスチャットの音声データはサーバーに保存されていないため、削除対象外です。</p>
+</div>
+
+<div class="warn">
+  <p><strong>注意：</strong>この操作は取り消せません。削除後はすべての設定が初期化されます。</p>
+</div>
+
+<h2>アプリ内から削除する</h2>
+<div class="section">
+  <p>1. アプリを開く</p>
+  <p>2. 下の「アカウントを削除」ボタンを押す</p>
+  <button class="btn" id="btn-delete" onclick="deleteAccount()">アカウントを削除する</button>
+</div>
+
+<div class="success" id="success-msg">
+  <p><strong>削除完了</strong> — すべてのアカウントデータが削除されました。</p>
+</div>
+
+<h2>手動で削除する</h2>
+<div class="section">
+  <p>ブラウザ版をご利用の場合：</p>
+  <ul>
+    <li>Chrome: 設定 → プライバシー → サイトデータの削除 → 該当サイトを選択して削除</li>
+    <li>Safari: 設定 → Safari → Webサイトデータ → 該当サイトを削除</li>
+  </ul>
+  <p>Androidアプリ版をご利用の場合：</p>
+  <ul>
+    <li>設定 → アプリ → ONI → ストレージ → データを消去</li>
+    <li>またはアプリをアンインストール</li>
+  </ul>
+</div>
+
+<h2>メールで削除を依頼する</h2>
+<div class="section">
+  <p>上記の方法で削除できない場合、以下のメールアドレスにご連絡ください。72時間以内に対応します。</p>
+  <p><strong>koruitomo0301@gmail.com</strong></p>
+</div>
+
+<p style="margin-top:24px"><a href="privacy-policy.html">← プライバシーポリシーに戻る</a></p>
+
+<script>
+function deleteAccount() {
+  if (!confirm('本当にアカウントとすべてのデータを削除しますか？\nこの操作は取り消せません。')) return;
+
+  try {
+    // ローカルストレージ全削除
+    localStorage.clear();
+    sessionStorage.clear();
+
+    // IndexedDB削除
+    if (window.indexedDB) {
+      indexedDB.databases().then(dbs => {
+        dbs.forEach(db => indexedDB.deleteDatabase(db.name));
+      }).catch(() => {});
+    }
+
+    // Service Worker登録解除
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        regs.forEach(reg => reg.unregister());
+      });
+    }
+
+    // キャッシュ削除
+    if ('caches' in window) {
+      caches.keys().then(keys => {
+        keys.forEach(key => caches.delete(key));
+      });
+    }
+
+    // Firebase匿名アカウント削除（アプリ内から開いた場合）
+    if (typeof firebase !== 'undefined' && firebase.auth) {
+      const user = firebase.auth().currentUser;
+      if (user) {
+        user.delete().then(() => {
+          console.log('Firebase account deleted');
+        }).catch(e => {
+          console.warn('Firebase delete failed:', e);
+        });
+      }
+    }
+
+    document.getElementById('btn-delete').style.display = 'none';
+    document.getElementById('success-msg').style.display = 'block';
+
+  } catch (e) {
+    alert('削除中にエラーが発生しました。手動削除をお試しください。');
+    console.error(e);
+  }
+}
+</script>
+
+</body>
+</html>

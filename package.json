@@ -1,0 +1,29 @@
+{
+  "name": "oni-tag-game",
+  "version": "1.0.0",
+  "description": "ONI - リアルタイム鬼ごっこバトル",
+  "main": "index.html",
+  "scripts": {
+    "build:www": "node scripts/build-www.js",
+    "cap:sync": "npm run build:www && npx cap sync",
+    "cap:open": "npx cap open android",
+    "cap:run": "npm run build:www && npx cap sync && npx cap run android",
+    "build:android": "npm run build:www && npx cap sync && npx cap open android",
+    "icons": "node scripts/generate-icons.js"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/cli": "^6.2.0",
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/geolocation": "^6.0.0",
+    "@capacitor/status-bar": "^6.0.0",
+    "@capacitor/splash-screen": "^6.0.0",
+    "@capacitor-community/admob": "^6.0.0"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.5",
+    "typescript": "^5.0.0"
+  },
+  "author": "",
+  "license": "MIT"
+}
