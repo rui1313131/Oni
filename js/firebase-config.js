@@ -2,15 +2,15 @@
 const FirebaseConfig = (() => {
   const STORAGE_KEY = 'oni_firebase_config';
 
-  // デフォルト設定（ユーザーが自分のFirebaseプロジェクトを設定する）
+  // デフォルト設定（ONI本番用Firebase）
   const defaultConfig = {
-    apiKey: "",
-    authDomain: "",
-    databaseURL: "",
-    projectId: "",
-    storageBucket: "",
-    messagingSenderId: "",
-    appId: ""
+    apiKey: "AIzaSyB-4hFx6okJcRfltyGfDsUbWULIIiQwGR4",
+    authDomain: "oni-tag-game.firebaseapp.com",
+    databaseURL: "https://oni-tag-game-default-rtdb.firebaseio.com",
+    projectId: "oni-tag-game",
+    storageBucket: "oni-tag-game.firebasestorage.app",
+    messagingSenderId: "389101133494",
+    appId: "1:389101133494:web:0937c83f73f752ad6b5017"
   };
 
   let db = null;
@@ -33,7 +33,7 @@ const FirebaseConfig = (() => {
   }
 
   function init() {
-    const config = loadConfig();
+    const config = loadConfig() || (defaultConfig.databaseURL ? defaultConfig : null);
     if (!config || !config.databaseURL) {
       console.warn('Firebase設定が未構成です。設定画面で設定してください。');
       return false;
