@@ -6,17 +6,18 @@ const AdManager = (() => {
 
   // AdMob設定（Capacitor/Android用）
   const ADMOB_CONFIG = {
-    bannerId: '', // ca-app-pub-XXXXX/YYYYY 形式で設定
-    interstitialId: '',
-    rewardedId: '',
-    testMode: true // 本番時にfalseに変更
+    appId: 'ca-app-pub-8709386372302469~1950669310',
+    bannerId: 'ca-app-pub-8709386372302469/5761221119',
+    interstitialId: 'ca-app-pub-8709386372302469/1069099386',
+    rewardedId: '', // リワードID入力後に設定
+    testMode: false
   };
 
   // AdSense設定（Web用）
   const ADSENSE_CONFIG = {
-    clientId: '', // ca-pub-XXXXX 形式で設定
+    clientId: 'ca-pub-8709386372302469',
     bannerSlot: '',
-    testMode: true
+    testMode: false
   };
 
   async function init() {
